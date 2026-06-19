@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.10] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Changed
+
+- **valhalla** — note 4096 MB volume limit on Hobby plan ([e81ef7d](https://github.com/anggiedimasta/15menit/commit/e81ef7d))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.9] - 2026-06-19
 
 <!-- changelog:sync-begin -->
