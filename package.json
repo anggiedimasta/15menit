@@ -1,0 +1,37 @@
+{
+  "name": "15menit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Indonesian transit accessibility — commute & isochrone maps",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anggiedimasta/15menit.git"
+  },
+  "scripts": {
+    "dev": "bun run --cwd apps/web dev",
+    "dev:api": "cd apps/api && uvicorn app.main:app --reload --port 8000",
+    "dev:api:stable": "cd apps/api && uvicorn app.main:app --port 8000",
+    "build": "bun run --cwd apps/web build",
+    "preview": "bun run --cwd apps/web preview",
+    "test": "bun run --cwd apps/web test",
+    "test:api": "cd apps/api && python -m pytest",
+    "test:all": "bun run test && bun run test:api",
+    "test:e2e": "bun run --cwd apps/web test:e2e",
+    "lint": "biome check .",
+    "lint:staged": "biome check --staged --write --no-errors-on-unmatched",
+    "format": "biome format --write .",
+    "postinstall": "husky",
+    "changelog:sync": "node scripts/release-sync.mjs",
+    "changelog:rebuild": "node scripts/release-sync.mjs --rebuild-recent",
+    "release:cut": "node scripts/release-sync.mjs --release"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "husky": "^9.1.7"
+  }
+}
