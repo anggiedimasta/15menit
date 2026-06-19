@@ -11,12 +11,11 @@ from typing import Any
 
 from app.config import settings
 from app.models.schemas import TransitLeg
-from app.services.gtfs import nearby_stops
+from app.services.gtfs import _merged_gtfs_path, nearby_stops
 from app.services.routing import get_isochrone, get_route, mock_isochrone_polygon
 
 FARES_PATH = Path(__file__).resolve().parents[3] / "data" / "fares" / "jakarta.json"
 REPO_ROOT = Path(__file__).resolve().parents[4]
-MERGED_GTFS_PATH = REPO_ROOT / "data" / "gtfs" / "jakarta-merged.zip"
 
 WALK_SPEED_MPS = 5000 / 3600
 BUS_SPEED_MPS = 20000 / 3600
@@ -108,10 +107,11 @@ def _read_gtfs_csv(zf: zipfile.ZipFile, name: str) -> list[dict[str, str]]:
 
 @lru_cache(maxsize=1)
 def _load_merged_feed() -> MergedGtfsFeed | None:
-    if not MERGED_GTFS_PATH.exists():
+    merged_path = _merged_gtfs_path()
+    if not merged_path.exists():
         return None
     try:
-        with zipfile.ZipFile(MERGED_GTFS_PATH) as zf:
+        with zipfile.ZipFile(merged_path) as zf:
             return MergedGtfsFeed(
                 stops=_read_gtfs_csv(zf, "stops.txt"),
                 stop_times=_read_gtfs_csv(zf, "stop_times.txt"),
@@ -253,8 +253,8 @@ async def transit_isochrone(
     try:
         import r5py  # type: ignore[import-untyped]
 
-        osm_path = Path("data/osm/java-latest.osm.pbf")
-        gtfs_path = Path("data/gtfs/jakarta-merged.zip")
+        osm_path = REPO_ROOT / "data" / "osm" / "java-latest.osm.pbf"
+        gtfs_path = settings.gtfs_merged_path
         if not osm_path.exists() or not gtfs_path.exists():
             raise FileNotFoundError("r5 network files missing")
         transport = r5py.TransportNetwork(str(osm_path), [str(gtfs_path)])
@@ -284,6 +284,8 @@ def _mock_transit_plan(
 ) -> dict[str, Any]:
     origin_stops = nearby_stops(origin_lat, origin_lng, radius_m=1000)
     dest_stops = nearby_stops(dest_lat, dest_lng, radius_m=1000)
+    feed = _load_merged_feed()
+    stop_limit = 8 if feed is not None and feed.stop_times else 5
 
     direct_walk_m = _haversine_m(origin_lat, origin_lng, dest_lat, dest_lng)
     best: dict[str, Any] | None = None
@@ -308,8 +310,8 @@ def _mock_transit_plan(
             "fare_legs": [],
         }
 
-    for board in origin_stops[:5]:
-        for alight in dest_stops[:5]:
+    for board in origin_stops[:stop_limit]:
+        for alight in dest_stops[:stop_limit]:
             if board["stop_id"] == alight["stop_id"]:
                 continue
             walk_to = _haversine_m(
@@ -328,7 +330,7 @@ def _mock_transit_plan(
             agency = board.get("agency", "TJ")
             route_id = f"{agency}-{board['stop_id']}"
             line_name: str | None = None
-            feed = _load_merged_feed()
+            gtfs_timed = False
             if feed is not None:
                 board_gtfs = _match_gtfs_stop_id(
                     feed, board["lat"], board["lng"]
@@ -345,6 +347,7 @@ def _mock_transit_plan(
                     gtfs_trip = _gtfs_trip_duration_min(board_gtfs, alight_gtfs)
                     if gtfs_trip is not None:
                         transit_min, route_id, line_name = gtfs_trip
+                        gtfs_timed = True
                     else:
                         line_name = _line_name_for_stop(feed, board_gtfs)
                         if line_name is None:
@@ -370,6 +373,7 @@ def _mock_transit_plan(
                 "route_id": route_id,
                 "line_name": line_name,
                 "agency": agency,
+                "gtfs_timed": gtfs_timed,
             }
             if best is None or candidate["duration_min"] < best["duration_min"]:
                 best = candidate
@@ -423,13 +427,16 @@ def _mock_transit_plan(
     if agency == "KRL":
         fare_legs[0]["station_pair"] = f"{board['name']}-{alight['name']}"
 
-    return {
+    result = {
         "duration_min": best["duration_min"],
         "transfers": 0,
         "legs": legs,
         "polyline": polyline,
         "fare_legs": fare_legs,
     }
+    if best.get("gtfs_timed"):
+        result["source"] = "gtfs"
+    return result
 
 
 async def _r5_transit_duration(
@@ -441,8 +448,8 @@ async def _r5_transit_duration(
     try:
         import r5py  # type: ignore[import-untyped]
 
-        osm_path = Path("data/osm/java-latest.osm.pbf")
-        gtfs_path = Path("data/gtfs/jakarta-merged.zip")
+        osm_path = REPO_ROOT / "data" / "osm" / "java-latest.osm.pbf"
+        gtfs_path = settings.gtfs_merged_path
         if not osm_path.exists() or not gtfs_path.exists():
             return None
         transport = r5py.TransportNetwork(str(osm_path), [str(gtfs_path)])

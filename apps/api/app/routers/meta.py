@@ -11,6 +11,8 @@ async def city_meta() -> dict:
         "city": "jakarta",
         "transit_available": settings.transit_mode != "disabled",
         "routing_mode": settings.routing_mode,
+        "valhalla_reachable": settings.valhalla_reachable,
+        "gtfs_merged_available": settings.gtfs_merged_available,
         "bbox": {
             "java": settings.java_bbox,
             "bodetabek": settings.bodetabek_bbox,
