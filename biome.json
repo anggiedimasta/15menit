@@ -12,6 +12,7 @@
       "!**/playwright-report",
       "!**/playwright/.cache",
       "!**/test-results",
+      "!**/dist",
       "!data/gtfs/*.json",
       "!data/cities/**/manifest.json"
     ]

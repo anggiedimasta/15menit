@@ -105,9 +105,9 @@
 - **Gap:** stops not in PostGIS; CI does not run DB integration tests
 
 **Tests:**
-- pytest: memory + tiered cache unit tests; PostGIS `ST_Point` + postgres cache round-trip — skipped unless `DATABASE_URL` set (`test_db_cache.py`)
+- pytest: memory + tiered cache unit tests; PostGIS `ST_Point` + postgres cache round-trip — `@pytest.mark.integration`, skipped unless `DATABASE_URL` set (`test_db_cache.py`)
 
-**Status:** Partial — Alembic migration stub + tiered isochrone cache wired; stops table + CI DB job pending
+**Status:** Partial — Alembic + tiered cache verified locally (Docker PostGIS + psycopg v3 driver); graceful degrade when DB down; CI DB job pending
 
 ---
 
@@ -187,7 +187,7 @@
 - pytest: Monas polygon non-empty; 400 for (0,0); cache hit (`test_isochrone.py`)
 - pytest: Valhalla client with mocked HTTP + `ROUTING_MODE=valhalla` path (`test_valhalla.py`)
 
-**Status:** Partial — API + mock (street-grid irregular polygon, not circle) + Valhalla client + integration tests; prod graph build optional
+**Status:** Partial — API + mock + Valhalla client; `ROUTING_MODE=auto` probes Valhalla at startup; prod graph build optional
 
 ---
 
@@ -363,7 +363,7 @@
 **Tests:**
 - pytest: fastest_mode + 5 fixture pairs; transit legs + polyline + line_name + GTFS stop_times (`test_commute.py`, `test_transit_gtfs.py`)
 
-**Status:** Partial — GTFS stop_times + route_long_name legs + LRT agency detection; r5 leg-by-leg detail still pending
+**Status:** Partial — GTFS stop_times legs + `source: gtfs` when merged zip has schedules; wider stop search; r5 leg detail pending
 
 ---
 
