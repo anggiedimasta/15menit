@@ -1,0 +1,16 @@
+{
+  "name": "15menit",
+  "short_name": "15menit",
+  "description": "Indonesian transit accessibility — commute & isochrone maps",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
