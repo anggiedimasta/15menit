@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.8] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Changed
+
+- **valhalla** — add Railway service README ([a0db32a](https://github.com/anggiedimasta/15menit/commit/a0db32a))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.7] - 2026-06-19
 
 <!-- changelog:sync-begin -->
