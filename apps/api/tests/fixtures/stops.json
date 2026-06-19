@@ -1,0 +1,34 @@
+[
+  {
+    "stop_id": "TJ001",
+    "name": "Monas",
+    "lat": -6.1754,
+    "lng": 106.8272,
+    "modes": ["bus"],
+    "agency": "TJ"
+  },
+  {
+    "stop_id": "TJ002",
+    "name": "Bundaran HI",
+    "lat": -6.1944,
+    "lng": 106.8227,
+    "modes": ["bus"],
+    "agency": "TJ"
+  },
+  {
+    "stop_id": "KRL001",
+    "name": "Sudirman",
+    "lat": -6.2088,
+    "lng": 106.8456,
+    "modes": ["rail"],
+    "agency": "KRL"
+  },
+  {
+    "stop_id": "MRT001",
+    "name": "Dukuh Atas BNI",
+    "lat": -6.2045,
+    "lng": 106.8245,
+    "modes": ["subway"],
+    "agency": "MRT"
+  }
+]
