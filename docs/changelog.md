@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.9] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **deploy** — fit Valhalla to Railway 5GB volume limit ([18913e1](https://github.com/anggiedimasta/15menit/commit/18913e1))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.8] - 2026-06-19
 
 <!-- changelog:sync-begin -->
