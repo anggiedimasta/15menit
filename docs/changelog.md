@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.14] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — preserve server_threads through runuser ([55261b6](https://github.com/anggiedimasta/15menit/commit/55261b6))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.13] - 2026-06-19
 
 <!-- changelog:sync-begin -->
