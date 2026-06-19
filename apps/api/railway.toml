@@ -1,6 +1,5 @@
 [build]
-builder = "RAILPACK"
-buildCommand = "pip install -e ."
+builder = "DOCKERFILE"
 watchPatterns = ["apps/api/**"]
 
 [deploy]

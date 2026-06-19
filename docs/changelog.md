@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-begin -->
 
+### Fixed
+
+- **deploy** — use Dockerfile for API service so Railway builds from `apps/api` instead of running `pip install -e .` at monorepo root
+
 <!-- changelog:sync-end -->
 
 ## [0.1.2] - 2026-06-19
