@@ -299,8 +299,8 @@ Verifikasi mode routing production:
 ```bash
 curl https://api-15menit.up.railway.app/meta/city
 # routing_mode: "valhalla", valhalla_reachable: true  ← setelah Valhalla selesai build
-curl https://<valhalla-domain>/status
-# 200 when graph loaded
+curl https://valhalla-15menit.up.railway.app/status
+# 200 when graph loaded (public; API uses private domain :8002)
 ```
 
 UI production menampilkan banner **Mode simulasi** hanya jika `routing_mode=mock`.
