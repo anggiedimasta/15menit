@@ -227,11 +227,8 @@ curl "http://localhost:8000/geocode/search?q=Monas"
 
 ## 9. Deploy ke Railway (production)
 
-> **Deploy ≠ routing nyata.** Railway v1 hanya menjalankan API FastAPI + web TanStack Start.
-> Valhalla (graph OSM ±30–60 menit build, ~8 GB RAM) **tidak** ikut ter-deploy.
-> Production sengaja memakai `ROUTING_MODE=mock` — polygon isochrone tetap muncul, tapi
-> itu simulasi matematis, bukan hasil routing jalan OSM. Untuk isochrone nyata, jalankan
-> Valhalla lokal (bagian 4) atau deploy Valhalla terpisah (lihat 9.4).
+> **Routing nyata:** Service **valhalla** terpisah (9.4) + `ROUTING_MODE=auto` di API.
+> Tanpa Valhalla siap, API fallback ke `mock`. Graph build pertama ±15–30 menit (Jabodetabek clip).
 
 Monorepo ini punya **tiga service** di satu Railway project:
 
@@ -310,22 +307,25 @@ UI production menampilkan banner **Mode simulasi** hanya jika `routing_mode=mock
 
 ### 9.4 Routing nyata di Railway (Valhalla)
 
-Service **valhalla** (`services/valhalla/`) memakai image [gis-ops/docker-valhalla](https://github.com/gis-ops/docker-valhalla) dengan clip OSM Jabodetabek (bbox sama dengan `bodetabek_bbox` di API) agar build graph lebih cepat daripada full Java.
+Service **valhalla** (`services/valhalla/`) memakai image [gis-ops/docker-valhalla](https://github.com/gis-ops/docker-valhalla) dengan clip OSM **Jabodetabek saja** (bbox sama dengan `bodetabek_bbox` di API). Full Java **tidak** disimpan — hanya clip ~15–25 MB + graph ~0.5–2 GB.
 
 | Langkah | Detail |
 |---------|--------|
-| **Volume** | Mount persistent volume ke `/custom_files` (tiles + OSM clip survive redeploy) |
+| **Volume** | Satu volume ke `/custom_files` — **≤4096 MB** (Hobby plan max **5000 MB**; jangan pakai 5120 MB) |
 | **RAM** | Scale **≥ 4 GB** sebelum deploy pertama (graph build). Bisa turun setelah tiles siap |
-| **Healthcheck** | `GET /status` — **gagal** selama build pertama (10–30 menit). `healthcheckTimeout=3600` di `railway.toml` |
+| **Healthcheck** | `GET /status` — **gagal** selama build pertama (15–30 menit). `healthcheckTimeout=3600` di `railway.toml` |
 | **API env** | `ROUTING_MODE=auto`, `VALHALLA_URL=http://${{valhalla.RAILWAY_PRIVATE_DOMAIN}}:8002` |
+| **Coverage** | Jabodetabek (Jakarta, Bogor, Depok, Tangerang, Bekasi) — di luar bbox API fallback mock |
 
-Deploy pertama (per volume kosong):
+Deploy pertama (volume kosong):
 
-1. Download Java OSM (~150 MB) → clip Jabodetabek (~15–25 MB)
-2. `valhalla_build_tiles` — **10–30 menit** untuk bbox kecil (vs 30–60+ full Java)
-3. Serve di port 8002; redeploy berikutnya load `valhalla_tiles.tar` dari volume (cepat)
+1. Download Java OSM (~150 MB) → clip Jabodetabek → hapus Java (hemat disk)
+2. `valhalla_build_tiles` — **15–30 menit** untuk bbox kecil
+3. Serve port 8002; redeploy berikutnya load `valhalla_tiles.tar` dari volume (cepat)
 
-Jika OOM atau timeout: naikkan RAM ke 8 GB, atau pre-upload `valhalla_tiles.tar` ke volume + `use_tiles_ignore_pbf=True`.
+**Plan limit error:** `Max size of 5000 MB on current plan` = volume >5000 MB (mis. 5120 MB). Turunkan ke **4096 MB**, hapus volume duplikat di `/data`.
+
+Jika OOM atau timeout: naikkan RAM ke 8 GB, atau pre-upload `valhalla_tiles.tar` ke volume.
 
 ### 9.5 Routing nyata — opsi per environment
 
