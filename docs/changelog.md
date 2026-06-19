@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.13] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — cap server_threads for Railway ulimit ([e9e072f](https://github.com/anggiedimasta/15menit/commit/e9e072f))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.12] - 2026-06-19
 
 <!-- changelog:sync-begin -->
