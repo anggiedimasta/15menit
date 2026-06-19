@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 <!-- changelog:sync-begin -->
+### Fixed
+
+- **deploy** — serve static assets on Railway web (srvx static path relative to server entry)
 
 <!-- changelog:sync-end -->
 

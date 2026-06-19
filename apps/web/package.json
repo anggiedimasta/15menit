@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build",
-    "start": "srvx --prod -s dist/client dist/server/server.js",
+    "start": "srvx --prod -s ../client dist/server/server.js",
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
