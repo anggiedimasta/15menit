@@ -9,23 +9,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 <!-- changelog:sync-begin -->
-### Added
 
-- **deploy** — add Railway config for api and web (railpack, Procfile, start commands)
-- **web** — add map UI with glass panel overlays ([4e4b6a7](https://github.com/anggiedimasta/15menit/commit/4e4b6a7))
-- **api** — add commute and isochrone API ([69c3673](https://github.com/anggiedimasta/15menit/commit/69c3673))
+<!-- changelog:sync-end -->
 
+## [0.1.1] - 2026-06-19
+
+<!-- changelog:sync-begin -->
 ### Changed
 
-- **web** — apply Biome format to service worker ([8b3e10d](https://github.com/anggiedimasta/15menit/commit/8b3e10d))
-- add README with dev setup guide ([d8cc87c](https://github.com/anggiedimasta/15menit/commit/d8cc87c))
-- add Docker Compose and Supabase ([71f460b](https://github.com/anggiedimasta/15menit/commit/71f460b))
-- add GTFS and OSM data pipeline scripts ([d161d3f](https://github.com/anggiedimasta/15menit/commit/d161d3f))
-- **data** — add city templates and GTFS fixtures ([4cdb608](https://github.com/anggiedimasta/15menit/commit/4cdb608))
-- add shared workspace package ([72d6a9b](https://github.com/anggiedimasta/15menit/commit/72d6a9b))
-- add PRD, backlog, and changelog baseline ([0da9731](https://github.com/anggiedimasta/15menit/commit/0da9731))
-- add Husky hooks and release sync ([8a38fae](https://github.com/anggiedimasta/15menit/commit/8a38fae))
-- scaffold Bun monorepo workspace ([bc21442](https://github.com/anggiedimasta/15menit/commit/bc21442))
+- **deploy** — add Railway config for api and web ([f30c56e](https://github.com/anggiedimasta/15menit/commit/f30c56e))
 
 
 <!-- changelog:sync-end -->
