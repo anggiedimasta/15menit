@@ -8,7 +8,7 @@ import {
   Sun,
 } from "@phosphor-icons/react";
 import { getRouteApi } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CommuteRouteInputs } from "@/components/commute/CommuteRouteInputs";
@@ -32,7 +32,11 @@ import {
   type LatLng,
 } from "@/lib/api";
 import type { MapTheme } from "@/lib/mapStyles";
-import { buildShareSearch, parseShareState } from "@/lib/shareUrl";
+import {
+  buildShareSearch,
+  parseShareState,
+  shareSearchEqual,
+} from "@/lib/shareUrl";
 import { APP_VERSION, cn } from "@/lib/utils";
 
 const routeApi = getRouteApi("/");
@@ -138,8 +142,12 @@ export function App() {
 
   useEffect(() => {
     const next = buildShareSearch({ a: pins.a, b: pins.b, mode });
-    navigate({ search: next, replace: true });
-  }, [pins.a, pins.b, mode, navigate]);
+    const current = buildShareSearch(shareState);
+    if (shareSearchEqual(next, current)) return;
+    startTransition(() => {
+      navigate({ search: next, replace: true });
+    });
+  }, [pins.a, pins.b, mode, navigate, shareState]);
 
   useEffect(() => {
     fetchCityMeta()

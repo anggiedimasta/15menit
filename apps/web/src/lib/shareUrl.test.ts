@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildShareSearch, formatCoord, parseShareState } from "@/lib/shareUrl";
+import {
+  buildShareSearch,
+  formatCoord,
+  parseShareState,
+  shareSearchEqual,
+} from "@/lib/shareUrl";
 
 describe("shareUrl", () => {
   it("parses commute pins from query", () => {
@@ -38,5 +43,16 @@ describe("shareUrl", () => {
       mode: "isochrone",
     });
     expect(search.mode).toBe("isochrone");
+  });
+
+  it("compares share search params", () => {
+    const left = buildShareSearch({
+      a: { lat: -6.2, lng: 106.82 },
+      b: null,
+      mode: "commute",
+    });
+    const right = { ...left };
+    expect(shareSearchEqual(left, right)).toBe(true);
+    expect(shareSearchEqual(left, { ...left, mode: "isochrone" })).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -38,6 +39,30 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+function ClientDevtools() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <TanStackDevtools
+      config={{
+        position: "bottom-right",
+      }}
+      plugins={[
+        {
+          name: "Tanstack Router",
+          render: <TanStackRouterDevtoolsPanel />,
+        },
+      ]}
+    />
+  );
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
@@ -47,17 +72,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <script src="/register-sw.js" defer />
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        <ClientDevtools />
         <Scripts />
       </body>
     </html>

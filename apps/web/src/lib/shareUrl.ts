@@ -37,14 +37,20 @@ export function formatCoord(point: LatLng): string {
   return `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`;
 }
 
-export function buildShareSearch(state: ShareState): {
+export type ShareSearch = {
   a?: string;
   b?: string;
   mode?: AppMode;
-} {
-  const search: { a?: string; b?: string; mode?: AppMode } = {};
+};
+
+export function buildShareSearch(state: ShareState): ShareSearch {
+  const search: ShareSearch = {};
   if (state.a) search.a = formatCoord(state.a);
   if (state.b) search.b = formatCoord(state.b);
   if (state.mode !== "commute") search.mode = state.mode;
   return search;
+}
+
+export function shareSearchEqual(a: ShareSearch, b: ShareSearch): boolean {
+  return a.a === b.a && a.b === b.b && a.mode === b.mode;
 }
