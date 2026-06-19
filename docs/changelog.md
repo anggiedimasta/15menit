@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.4] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **deploy** — shell-expand PORT in API start command ([6aa23d5](https://github.com/anggiedimasta/15menit/commit/6aa23d5))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.3] - 2026-06-19
 
 <!-- changelog:sync-begin -->
