@@ -100,8 +100,8 @@ export function ComparisonCards({
                   className={cn(
                     "flex min-w-[4.5rem] shrink-0 flex-col items-center gap-1 rounded-xl border px-3 py-2 transition-colors",
                     isDark
-                      ? "border-white/15 bg-white/10"
-                      : "border-border bg-muted/60",
+                      ? "border-white/15 bg-white/10 text-zinc-50"
+                      : "border-zinc-200 bg-white/80 text-zinc-900",
                     result.is_fastest &&
                       (isDark
                         ? "border-emerald-400/60 bg-emerald-500/20"
@@ -126,7 +126,7 @@ export function ComparisonCards({
                   <span
                     className={cn(
                       "text-[10px] uppercase tracking-wider",
-                      isDark ? "text-zinc-400" : "text-muted-foreground",
+                      isDark ? "text-zinc-400" : "text-zinc-600",
                     )}
                   >
                     mnt
@@ -145,7 +145,7 @@ export function ComparisonCards({
                     <CaretDown
                       className={cn(
                         "size-3",
-                        isDark ? "text-zinc-400" : "text-muted-foreground",
+                        isDark ? "text-zinc-400" : "text-zinc-600",
                         isExpanded && "rotate-180",
                       )}
                       aria-hidden

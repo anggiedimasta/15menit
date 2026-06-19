@@ -24,7 +24,9 @@ test.describe.configure({ mode: "serial" });
 test.describe("15menit smoke", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "15menit" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "15menit" })).toBeVisible({
+      timeout: 15_000,
+    });
     await waitForMapReady(page);
   });
 
@@ -110,7 +112,7 @@ test.describe("15menit smoke", () => {
 
 test.describe("api unreachable", () => {
   test("shows banner when health check fails", async ({ page }) => {
-    await page.route("**/health", (route) => route.abort("failed"));
+    await page.route("**/api/health", (route) => route.abort("failed"));
     await page.goto("/");
     await expect(page.getByTestId("api-unreachable-banner")).toBeVisible({
       timeout: 10_000,

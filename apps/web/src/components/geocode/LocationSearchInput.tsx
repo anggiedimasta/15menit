@@ -102,7 +102,7 @@ export function LocationSearchInput({
             isGlass &&
               (mapTheme === "dark"
                 ? "text-zinc-50 placeholder:text-zinc-400"
-                : "text-foreground placeholder:text-muted-foreground"),
+                : "text-zinc-900 placeholder:text-zinc-500"),
           )}
         />
       </div>
@@ -113,7 +113,7 @@ export function LocationSearchInput({
             isGlass
               ? mapTheme === "dark"
                 ? "border-white/20 bg-zinc-900/95 text-zinc-50"
-                : "border-border bg-white/95 text-foreground"
+                : "border-zinc-200 bg-white/95 text-zinc-900"
               : "border bg-background",
           )}
         >

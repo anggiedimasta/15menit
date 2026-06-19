@@ -11,7 +11,7 @@ type GlassPanelProps = {
 };
 
 const MAP_THEME_CLASSES: Record<MapTheme, string> = {
-  light: "border-black/10 bg-white/85 text-foreground shadow-black/10",
+  light: "border-black/10 bg-white/90 text-zinc-900 shadow-black/10",
   dark: "border-white/15 bg-zinc-900/90 text-zinc-50 shadow-black/30",
 };
 
