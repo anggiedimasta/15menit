@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.16] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — patch httpd.service.listen as tcp://*:8002 ([3ba54c6](https://github.com/anggiedimasta/15menit/commit/3ba54c6))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.15] - 2026-06-19
 
 <!-- changelog:sync-begin -->
