@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 <!-- changelog:sync-begin -->
 ### Added
 
+- **deploy** — add Railway config for api and web (railpack, Procfile, start commands)
 - **web** — add map UI with glass panel overlays ([4e4b6a7](https://github.com/anggiedimasta/15menit/commit/4e4b6a7))
 - **api** — add commute and isochrone API ([69c3673](https://github.com/anggiedimasta/15menit/commit/69c3673))
 

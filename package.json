@@ -17,6 +17,7 @@
     "dev:api": "cd apps/api && uvicorn app.main:app --reload --port 8000",
     "dev:api:stable": "cd apps/api && uvicorn app.main:app --port 8000",
     "build": "bun run --cwd apps/web build",
+    "start": "bun run --cwd apps/web start",
     "preview": "bun run --cwd apps/web preview",
     "test": "bun run --cwd apps/web test",
     "test:api": "cd apps/api && python -m pytest",
