@@ -37,7 +37,7 @@ async def multi_origin_isochrone(body: MultiOriginRequest) -> dict:
 
     geometries = []
     for origin in origins:
-        geom = await get_isochrone(origin["lat"], origin["lng"], body.minutes, "walking")
+        geom, _source = await get_isochrone(origin["lat"], origin["lng"], body.minutes, "walking")
         geometries.append(geom)
 
     merged = union_polygons(geometries)

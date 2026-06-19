@@ -2,6 +2,9 @@ import math
 from typing import Any, Literal
 
 import httpx
+from shapely.geometry import Point, Polygon
+from shapely.ops import unary_union
+from shapely.prepared import prep
 
 from app.config import settings
 
@@ -11,6 +14,57 @@ Mode = Literal["walking", "car", "motorcycle"]
 WALK_SPEED_MPS = 5000 / 3600
 CAR_SPEED_MPS = 25000 / 3600
 MOTOR_SPEED_MPS = 30000 / 3600
+
+# Simplified open-water masks (lng, lat) for mock isochrone clipping near Java coast.
+_STATIC_WATER: tuple[Polygon, ...] = (
+    Polygon(
+        [
+            (106.65, -6.095),
+            (106.72, -6.088),
+            (106.88, -6.07),
+            (106.95, -6.0),
+            (106.92, -5.52),
+            (106.60, -5.55),
+            (106.65, -6.095),
+        ]
+    ),
+    Polygon(
+        [
+            (105.0, -5.52),
+            (114.5, -5.52),
+            (114.5, -5.48),
+            (105.0, -5.48),
+            (105.0, -5.52),
+        ]
+    ),
+    Polygon(
+        [
+            (105.0, -8.85),
+            (114.5, -8.85),
+            (114.5, -8.35),
+            (105.0, -8.35),
+            (105.0, -8.85),
+        ]
+    ),
+    Polygon(
+        [
+            (114.0, -8.85),
+            (114.5, -8.85),
+            (114.5, -5.5),
+            (114.0, -5.5),
+            (114.0, -8.85),
+        ]
+    ),
+    Polygon(
+        [
+            (105.0, -8.85),
+            (105.55, -8.85),
+            (105.55, -5.5),
+            (105.0, -5.5),
+            (105.0, -8.85),
+        ]
+    ),
+)
 
 
 def _deterministic_noise(
@@ -31,8 +85,48 @@ def _meters_to_lat_lng_offset(
     return dlat, dlng
 
 
+def _water_mask_for_point(lat: float, lng: float, radius_m: float) -> Any | None:
+    """Prepared union of static water polygons intersecting the reach area."""
+    origin = Point(lng, lat)
+    search = origin.buffer((radius_m / 111_320) * 1.25)
+    nearby = [poly for poly in _STATIC_WATER if poly.intersects(search)]
+    if not nearby:
+        return None
+    return prep(unary_union(nearby))
+
+
+def _clip_radius_to_land(
+    lat: float,
+    lng: float,
+    angle_rad: float,
+    max_radius_m: float,
+    water: Any,
+    *,
+    step_m: float = 40.0,
+) -> float:
+    """Shrink a ray until its endpoint is not inside open water."""
+    dlat, dlng = _meters_to_lat_lng_offset(lat, max_radius_m, angle_rad)
+    if not water.contains(Point(lng + dlng, lat + dlat)):
+        return max_radius_m
+
+    lo, hi = 0.0, max_radius_m
+    while hi - lo > step_m:
+        mid = (lo + hi) / 2
+        dlat, dlng = _meters_to_lat_lng_offset(lat, mid, angle_rad)
+        if water.contains(Point(lng + dlng, lat + dlat)):
+            hi = mid
+        else:
+            lo = mid
+    return lo
+
+
 def mock_isochrone_polygon(
-    lat: float, lng: float, minutes: int, mode: Mode = "walking"
+    lat: float,
+    lng: float,
+    minutes: int,
+    mode: Mode = "walking",
+    *,
+    water: Any | None = None,
 ) -> dict[str, Any]:
     """Street-grid-ish walk reach polygon — intentionally not a perfect circle."""
     speed = {
@@ -41,6 +135,8 @@ def mock_isochrone_polygon(
         "motorcycle": MOTOR_SPEED_MPS,
     }[mode]
     base_radius_m = speed * minutes * 60
+    if water is None:
+        water = _water_mask_for_point(lat, lng, base_radius_m)
     num_points = 36
     points: list[list[float]] = []
     for i in range(num_points):
@@ -54,6 +150,8 @@ def mock_isochrone_polygon(
             abs(math.cos(angle)), abs(math.sin(angle))
         )
         radius_m = base_radius_m * street_factor * noise * diagonal_pinch
+        if water is not None:
+            radius_m = _clip_radius_to_land(lat, lng, angle, radius_m, water)
         dlat, dlng = _meters_to_lat_lng_offset(lat, radius_m, angle)
         points.append([lng + dlng, lat + dlat])
     points.append(points[0])
@@ -157,20 +255,21 @@ def _decode_polyline(encoded: str) -> list[list[float]]:
 
 async def get_isochrone(
     lat: float, lng: float, minutes: int, mode: Mode = "walking"
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], str]:
     costing_map: dict[Mode, Costing] = {
         "walking": "pedestrian",
         "car": "auto",
         "motorcycle": "motorcycle",
     }
     if settings.routing_mode == "mock":
-        return mock_isochrone_polygon(lat, lng, minutes, mode)
+        return mock_isochrone_polygon(lat, lng, minutes, mode), "mock"
     try:
-        return await valhalla_isochrone(
+        geometry = await valhalla_isochrone(
             lat, lng, minutes, costing_map[mode]
         )
+        return geometry, "valhalla"
     except (httpx.HTTPError, KeyError, IndexError):
-        return mock_isochrone_polygon(lat, lng, minutes, mode)
+        return mock_isochrone_polygon(lat, lng, minutes, mode), "mock"
 
 
 async def get_route(

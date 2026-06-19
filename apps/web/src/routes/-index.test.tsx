@@ -13,6 +13,7 @@ const { fetchCityMeta, checkApiHealth } = vi.hoisted(() => ({
       city: "jakarta",
       transit_available: true,
       routing_mode: "mock",
+      valhalla_reachable: false,
     }),
   ),
   checkApiHealth: vi.fn(() => Promise.resolve(true)),
@@ -84,6 +85,7 @@ describe("Home map", () => {
       city: "jakarta",
       transit_available: true,
       routing_mode: "mock",
+      valhalla_reachable: false,
     });
     checkApiHealth.mockResolvedValue(true);
   });
@@ -297,6 +299,7 @@ describe("transit unavailable banner", () => {
       city: "bandung",
       transit_available: false,
       routing_mode: "mock",
+      valhalla_reachable: false,
     });
     render(<App />);
     expect(

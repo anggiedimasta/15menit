@@ -110,9 +110,10 @@ async def test_get_isochrone_uses_valhalla_when_routing_mode_valhalla(
     mock_client.__aexit__.return_value = None
 
     with patch("app.services.routing.httpx.AsyncClient", return_value=mock_client):
-        geometry = await get_isochrone(MONAS["lat"], MONAS["lng"], 15, "walking")
+        geometry, source = await get_isochrone(MONAS["lat"], MONAS["lng"], 15, "walking")
 
     assert geometry["type"] == "Polygon"
+    assert source == "valhalla"
     assert mock_client.post.await_count == 1
 
 
@@ -134,9 +135,10 @@ async def test_get_isochrone_falls_back_to_mock_on_valhalla_error(
     mock_client.__aexit__.return_value = None
 
     with patch("app.services.routing.httpx.AsyncClient", return_value=mock_client):
-        geometry = await get_isochrone(MONAS["lat"], MONAS["lng"], 15, "walking")
+        geometry, source = await get_isochrone(MONAS["lat"], MONAS["lng"], 15, "walking")
 
     assert geometry["type"] == "Polygon"
+    assert source == "mock"
     assert len(geometry["coordinates"][0]) > 3
 
 

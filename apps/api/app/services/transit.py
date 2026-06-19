@@ -268,7 +268,7 @@ async def transit_isochrone(
         geometry = json.loads(iso.to_json())["features"][0]["geometry"]
         return geometry, metadata
     except Exception:
-        walk_geom = await get_isochrone(lat, lng, minutes, "walking")
+        walk_geom, _source = await get_isochrone(lat, lng, minutes, "walking")
         expanded = mock_isochrone_polygon(
             lat, lng, int(minutes * 1.25), "walking"
         )

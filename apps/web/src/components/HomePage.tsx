@@ -21,6 +21,7 @@ import { CommuteRouteInputs } from "@/components/commute/CommuteRouteInputs";
 import { ComparisonCards } from "@/components/commute/ComparisonCards";
 import { LocationSearchInput } from "@/components/geocode/LocationSearchInput";
 import { MapView } from "@/components/map/MapView";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Slider } from "@/components/ui/slider";
@@ -35,6 +36,7 @@ import {
   fetchCityMeta,
   fetchWalkIsochrone,
   type GeocodeResult,
+  type IsochroneFeature,
   type LatLng,
 } from "@/lib/api";
 import type { MapTheme } from "@/lib/mapStyles";
@@ -48,6 +50,15 @@ import { APP_VERSION, cn } from "@/lib/utils";
 const routeApi = getRouteApi("/");
 const MINUTE_OPTIONS = [10, 15, 30, 45, 60];
 type IsochroneTransport = "walk" | "car";
+
+function applyIsochroneFeature(
+  feature: IsochroneFeature,
+  setPolygon: (polygon: GeoJSON.Polygon | null) => void,
+  setIsoSource: (source: string | null) => void,
+) {
+  setPolygon(feature.geometry);
+  setIsoSource(feature.properties.source === "mock" ? "mock" : "valhalla");
+}
 
 function fetchIsochrone(
   transport: IsochroneTransport,
@@ -119,6 +130,7 @@ export function App() {
   const [isoPin, setIsoPin] = useState<LatLng | null>(null);
   const [isoPinLabel, setIsoPinLabel] = useState("");
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(null);
+  const [isoSource, setIsoSource] = useState<string | null>(null);
   const [compareData, setCompareData] = useState<CommuteCompareResponse | null>(
     null,
   );
@@ -127,6 +139,7 @@ export function App() {
     null,
   );
   const [transitAvailable, setTransitAvailable] = useState(true);
+  const [routingMode, setRoutingMode] = useState<string | null>(null);
   const [mapTheme, setMapTheme] = useState<MapTheme>("light");
   const [pinLabels, setPinLabels] = useState({ a: "", b: "" });
   const apiHealthy = useApiHealth();
@@ -136,15 +149,14 @@ export function App() {
   });
 
   useEffect(() => {
-    if (shareState.a && !pinLabels.a) {
-      const a = shareState.a;
-      setPinLabels((prev) => ({ ...prev, a: coordLabel(a) }));
-    }
-    if (shareState.b && !pinLabels.b) {
-      const b = shareState.b;
-      setPinLabels((prev) => ({ ...prev, b: coordLabel(b) }));
-    }
-  }, [shareState.a, shareState.b, pinLabels.a, pinLabels.b]);
+    setPinLabels((prev) => {
+      const next = { ...prev };
+      if (shareState.a && !prev.a) next.a = coordLabel(shareState.a);
+      if (shareState.b && !prev.b) next.b = coordLabel(shareState.b);
+      if (next.a === prev.a && next.b === prev.b) return prev;
+      return next;
+    });
+  }, [shareState.a, shareState.b]);
 
   useEffect(() => {
     const next = buildShareSearch({ a: pins.a, b: pins.b, mode });
@@ -157,8 +169,14 @@ export function App() {
 
   useEffect(() => {
     fetchCityMeta()
-      .then((meta) => setTransitAvailable(meta.transit_available))
-      .catch(() => setTransitAvailable(true));
+      .then((meta) => {
+        setTransitAvailable(meta.transit_available);
+        setRoutingMode(meta.routing_mode);
+      })
+      .catch(() => {
+        setTransitAvailable(true);
+        setRoutingMode(null);
+      });
   }, []);
 
   const handleMapClick = useCallback(
@@ -167,7 +185,9 @@ export function App() {
         setIsoPin(point);
         setIsoPinLabel(coordLabel(point));
         fetchIsochrone(isoTransport, point, minutes)
-          .then((feature) => setPolygon(feature.geometry))
+          .then((feature) =>
+            applyIsochroneFeature(feature, setPolygon, setIsoSource),
+          )
           .catch((err: Error) => toast.error(err.message));
       } else {
         setPinLabels((prev) => ({
@@ -202,7 +222,9 @@ export function App() {
     setIsoPin(point);
     setIsoPinLabel(result.display_name);
     fetchIsochrone(isoTransport, point, minutes)
-      .then((feature) => setPolygon(feature.geometry))
+      .then((feature) =>
+        applyIsochroneFeature(feature, setPolygon, setIsoSource),
+      )
       .catch((err: Error) => toast.error(err.message));
   };
 
@@ -233,7 +255,9 @@ export function App() {
     setIsoTransport(transport);
     if (isoPin) {
       fetchIsochrone(transport, isoPin, minutes)
-        .then((feature) => setPolygon(feature.geometry))
+        .then((feature) =>
+          applyIsochroneFeature(feature, setPolygon, setIsoSource),
+        )
         .catch((err: Error) => toast.error(err.message));
     }
   };
@@ -321,6 +345,21 @@ export function App() {
                   role="alert"
                 >
                   API tidak tersedia
+                </div>
+              )}
+
+              {routingMode === "mock" && apiHealthy && (
+                <div
+                  className={cn(
+                    "mb-2 rounded-lg border px-2 py-1.5 text-xs",
+                    mapTheme === "dark"
+                      ? "border-sky-400/40 bg-sky-500/20 text-sky-100"
+                      : "border-sky-200 bg-sky-50 text-sky-900",
+                  )}
+                  data-testid="routing-mock-banner"
+                >
+                  Mode simulasi — isochrone & rute jalan/mobil perkiraan, bukan
+                  data OSM nyata
                 </div>
               )}
 
@@ -449,12 +488,27 @@ export function App() {
                         </Button>
                       </SimpleTooltip>
                     </div>
-                    <span
-                      className="text-sm font-semibold tracking-tight"
-                      data-testid="iso-minutes-label"
-                    >
-                      {minutes}′
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-sm font-semibold tracking-tight"
+                        data-testid="iso-minutes-label"
+                      >
+                        {minutes}′
+                      </span>
+                      {isoSource === "mock" && (
+                        <Badge
+                          variant="outline"
+                          className={
+                            mapTheme === "dark"
+                              ? "border-white/20 text-zinc-200"
+                              : undefined
+                          }
+                          data-testid="iso-mock-badge"
+                        >
+                          Simulasi
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <Slider
                     min={0}
@@ -466,7 +520,13 @@ export function App() {
                       setMinutes(next);
                       if (isoPin) {
                         fetchIsochrone(isoTransport, isoPin, next)
-                          .then((feature) => setPolygon(feature.geometry))
+                          .then((feature) =>
+                            applyIsochroneFeature(
+                              feature,
+                              setPolygon,
+                              setIsoSource,
+                            ),
+                          )
                           .catch((err: Error) => toast.error(err.message));
                       }
                     }}

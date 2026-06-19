@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from app.config import settings
 from app.core.bbox import in_java_bbox
 from app.core.cache import isochrone_cache
 from app.models.schemas import IsochroneRequest, IsochroneResponse
@@ -10,8 +11,17 @@ router = APIRouter(prefix="/isochrone", tags=["isochrone"])
 
 
 def _build_response(
-    geometry: dict, lat: float, lng: float, minutes: int, mode: str, cached: bool
+    geometry: dict,
+    lat: float,
+    lng: float,
+    minutes: int,
+    mode: str,
+    cached: bool,
+    source: str | None = None,
 ) -> IsochroneResponse:
+    resolved_source = source or (
+        "mock" if settings.routing_mode == "mock" else "valhalla"
+    )
     return IsochroneResponse(
         geometry=geometry,
         properties={
@@ -20,6 +30,7 @@ def _build_response(
             "minutes": minutes,
             "mode": mode,
             "cached": cached,
+            "source": resolved_source,
         },
     )
 
@@ -34,9 +45,11 @@ async def walk_isochrone(body: IsochroneRequest) -> IsochroneResponse:
     if cached:
         return _build_response(cached, body.lat, body.lng, body.minutes, "walking", True)
 
-    geometry = await get_isochrone(body.lat, body.lng, body.minutes, "walking")
+    geometry, source = await get_isochrone(body.lat, body.lng, body.minutes, "walking")
     isochrone_cache.set("isochrone", cache_key, geometry)
-    return _build_response(geometry, body.lat, body.lng, body.minutes, "walking", False)
+    return _build_response(
+        geometry, body.lat, body.lng, body.minutes, "walking", False, source
+    )
 
 
 @router.post("/car", response_model=IsochroneResponse)
@@ -49,10 +62,10 @@ async def car_isochrone(body: IsochroneRequest) -> IsochroneResponse:
     if cached:
         return _build_response(cached, body.lat, body.lng, body.minutes, "car", True)
 
-    geometry = await get_isochrone(body.lat, body.lng, body.minutes, "car")
+    geometry, source = await get_isochrone(body.lat, body.lng, body.minutes, "car")
     isochrone_cache.set("isochrone", cache_key, geometry)
     return _build_response(
-        geometry, body.lat, body.lng, body.minutes, "car", False
+        geometry, body.lat, body.lng, body.minutes, "car", False, source
     )
 
 

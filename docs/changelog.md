@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-begin -->
 
+### Fixed
+
+- **api** — clip mock isochrone rays against simplified coastal water masks so reach polygons no longer spill into open water (e.g. Pluit / Jakarta Bay)
+
+### Added
+
+- **api** — expose `properties.source` (`mock` | `valhalla`) on isochrone responses
+- **web** — **Simulasi** badge on isochrone when source is mock; **Mode simulasi** banner when `routing_mode=mock`
+
 <!-- changelog:sync-end -->
 
 ## [0.1.6] - 2026-06-19

@@ -20,7 +20,7 @@ def test_resolve_routing_mode_forces_valhalla(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("ROUTING_MODE", "valhalla")
-    assert _resolve_routing_mode("http://127.0.0.1:1") == "valhalla"
+    assert _resolve_routing_mode("http://127.0.0.1:1", False) == "valhalla"
 
 
 def test_settings_from_env_without_database(monkeypatch: pytest.MonkeyPatch) -> None:

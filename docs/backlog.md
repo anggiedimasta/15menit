@@ -175,12 +175,13 @@
 **Data:**
 - Input: `{ lat: -6.2, lng: 106.8, minutes: 15 }`
 - Output: GeoJSON Polygon
-- Source: OSM via Valhalla (or mock circles when `ROUTING_MODE=mock`)
+- Source: OSM via Valhalla (or mock grid-ish polygon with coastal water clip when `ROUTING_MODE=mock`)
 
 **Behavior:**
 - Return 400 if lat/lng outside Java bbox
 - Cache in-memory by `(lat,lng,minutes,mode)` hash → TTL 24h
-- Valhalla client in `app/services/routing.py`; mock fallback on error
+- Valhalla client in `app/services/routing.py`; mock fallback on error; mock clips rays against simplified Java coastal water masks
+- API returns `properties.source` (`mock` | `valhalla`); web shows **Perkiraan** badge when mock
 - **Gap:** cache not in PostGIS as PRD spec; production Valhalla build not default
 
 **Tests:**

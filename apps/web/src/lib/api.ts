@@ -49,6 +49,7 @@ export type CityMeta = {
   city: string;
   transit_available: boolean;
   routing_mode: string;
+  valhalla_reachable: boolean;
 };
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {

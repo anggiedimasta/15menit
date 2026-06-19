@@ -1,7 +1,7 @@
 import math
 
 from fastapi.testclient import TestClient
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, Polygon, shape
 
 from app.main import app
 from app.services.routing import mock_isochrone_polygon
@@ -9,6 +9,16 @@ from app.services.routing import mock_isochrone_polygon
 client = TestClient(app)
 
 MONAS = {"lat": -6.1754, "lng": 106.8272}
+PLUIT = {"lat": -6.1056, "lng": 106.8044}
+JAKARTA_BAY_OPEN_WATER = Polygon(
+    [
+        (106.70, -6.085),
+        (106.92, -6.085),
+        (106.92, -5.5),
+        (106.70, -5.5),
+        (106.70, -6.085),
+    ]
+)
 
 
 def test_walk_isochrone_monas() -> None:
@@ -16,8 +26,24 @@ def test_walk_isochrone_monas() -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["geometry"]["type"] == "Polygon"
+    assert data["properties"]["source"] == "mock"
     coords = data["geometry"]["coordinates"][0]
     assert len(coords) > 3
+
+
+def test_mock_isochrone_pluit_avoids_open_water() -> None:
+    geom = mock_isochrone_polygon(PLUIT["lat"], PLUIT["lng"], 15, "walking")
+    poly = shape(geom)
+    assert poly.intersection(JAKARTA_BAY_OPEN_WATER).area < 1e-9
+
+
+def test_walk_isochrone_pluit_avoids_open_water() -> None:
+    response = client.post("/isochrone/walk", json={**PLUIT, "minutes": 15})
+    assert response.status_code == 200
+    data = response.json()
+    poly = shape(data["geometry"])
+    assert poly.intersection(JAKARTA_BAY_OPEN_WATER).area < 1e-9
+    assert data["properties"]["source"] == "mock"
 
 
 def test_mock_isochrone_not_perfect_circle() -> None:
