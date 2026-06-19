@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.12] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — rebuild when tile archive missing ([875ec25](https://github.com/anggiedimasta/15menit/commit/875ec25))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.11] - 2026-06-19
 
 <!-- changelog:sync-begin -->
