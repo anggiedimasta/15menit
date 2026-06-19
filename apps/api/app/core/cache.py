@@ -55,7 +55,7 @@ class PostgresCache:
 
         key = self._key(prefix, payload)
         try:
-            with psycopg.connect(self._database_url) as conn:
+            with psycopg.connect(self._database_url, connect_timeout=2) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -82,7 +82,7 @@ class PostgresCache:
 
         key = self._key(prefix, payload)
         try:
-            with psycopg.connect(self._database_url) as conn:
+            with psycopg.connect(self._database_url, connect_timeout=2) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """

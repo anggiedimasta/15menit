@@ -28,14 +28,18 @@ def test_tiered_cache_without_database_url(monkeypatch: pytest.MonkeyPatch) -> N
     assert cache.get("isochrone", payload) == geometry
 
 
-@pytest.mark.skipif(
-    not os.getenv("DATABASE_URL"),
-    reason="DATABASE_URL not set — run docker compose up -d db && alembic upgrade head",
-)
+def _database_url() -> str | None:
+    return os.environ.get("DATABASE_URL") or os.getenv("DATABASE_URL")
+
+
+@pytest.mark.integration
 def test_postgis_st_point_query() -> None:
+    db_url = _database_url()
+    if not db_url:
+        pytest.skip("DATABASE_URL not set — run docker compose up -d db && alembic upgrade head")
     import psycopg
 
-    with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
+    with psycopg.connect(db_url, connect_timeout=2) as conn:
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
             cur.execute(
@@ -47,14 +51,14 @@ def test_postgis_st_point_query() -> None:
     assert "POINT" in row[0]
 
 
-@pytest.mark.skipif(
-    not os.getenv("DATABASE_URL"),
-    reason="DATABASE_URL not set — requires migrated isochrone_cache table",
-)
+@pytest.mark.integration
 def test_isochrone_cache_postgres_round_trip() -> None:
+    db_url = _database_url()
+    if not db_url:
+        pytest.skip("DATABASE_URL not set — requires migrated isochrone_cache table")
     from app.core.cache import PostgresCache
 
-    cache = PostgresCache(os.environ["DATABASE_URL"], ttl_seconds=3600)
+    cache = PostgresCache(db_url, ttl_seconds=3600)
     payload = {"lat": -6.17, "lng": 106.82, "minutes": 15, "mode": "walk"}
     geometry = {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}
 
