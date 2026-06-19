@@ -28,4 +28,5 @@ unset tile_urls
 export server_threads="${server_threads:-2}"
 ulimit -n 65536 2>/dev/null || ulimit -n 4096 2>/dev/null || true
 
-exec runuser -u valhalla -- /valhalla/scripts/run.sh "$@"
+# runuser drops custom env vars unless -p; pass server_threads explicitly so v0.1.13 cap applies.
+exec runuser -p -u valhalla -- env server_threads="${server_threads}" /valhalla/scripts/run.sh "$@"
