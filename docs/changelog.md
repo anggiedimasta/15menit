@@ -12,6 +12,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.19] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Changed
+
+- add Valhalla public URL for verification ([46bae40](https://github.com/anggiedimasta/15menit/commit/46bae40))
+
+### Fixed
+
+- **web** — remove devtools plugin and stabilize e2e ([9b0f1e0](https://github.com/anggiedimasta/15menit/commit/9b0f1e0))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.18] - 2026-06-19
 
 <!-- changelog:sync-begin -->
