@@ -227,12 +227,19 @@ curl "http://localhost:8000/geocode/search?q=Monas"
 
 ## 9. Deploy ke Railway (production)
 
-Monorepo ini punya **dua service** terpisah di satu Railway project:
+> **Deploy ≠ routing nyata.** Railway v1 hanya menjalankan API FastAPI + web TanStack Start.
+> Valhalla (graph OSM ±30–60 menit build, ~8 GB RAM) **tidak** ikut ter-deploy.
+> Production sengaja memakai `ROUTING_MODE=mock` — polygon isochrone tetap muncul, tapi
+> itu simulasi matematis, bukan hasil routing jalan OSM. Untuk isochrone nyata, jalankan
+> Valhalla lokal (bagian 4) atau deploy Valhalla terpisah (lihat 9.4).
+
+Monorepo ini punya **tiga service** di satu Railway project:
 
 | Service | Root directory | Config file | Start |
 |---------|----------------|-------------|-------|
 | **api** | `apps/api` | `/apps/api/railway.toml` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 | **web** | `/` (repo root) | `/railway.web.toml` | `bun run --cwd apps/web start` (TanStack Start + srvx) |
+| **valhalla** | `services/valhalla` | `/services/valhalla/railway.toml` | Docker Valhalla (port **8002**, health `/status`) |
 
 Project Railway: [15menit](https://railway.com/project/328787c9-7738-475f-aea4-89050cc4b6ba)
 
@@ -244,8 +251,9 @@ Repo GitHub: `https://github.com/anggiedimasta/15menit` — auto-deploy dari bra
 
 | Variabel | Nilai production v1 | Wajib? |
 |----------|---------------------|--------|
-| `ROUTING_MODE` | `mock` | Ya (tanpa Valhalla) |
+| `ROUTING_MODE` | `auto` | Ya (dengan Valhalla) |
 | `TRANSIT_MODE` | `mock` | Ya (tanpa GTFS bundle) |
+| `VALHALLA_URL` | `http://${{valhalla.RAILWAY_PRIVATE_DOMAIN}}:8002` | Ya (routing nyata) |
 | `ALLOWED_ORIGINS` | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` | Ya (CORS browser) |
 | `DATABASE_URL` | dari Postgres plugin | Opsional |
 | `SUPABASE_URL` / `VITE_SUPABASE_URL` | URL proyek Supabase | Opsional |
@@ -287,4 +295,52 @@ curl https://<api-domain>/health
 # Buka https://<web-domain> — health chip hijau jika API reachable
 ```
 
-Valhalla dan GTFS **tidak** di-deploy di Railway v1; mock mode cukup untuk demo isochrone/commute.
+Valhalla dan GTFS transit bundle **tidak** otomatis ikut API/web deploy; Valhalla punya service + volume sendiri (lihat 9.4).
+
+Verifikasi mode routing production:
+
+```bash
+curl https://api-15menit.up.railway.app/meta/city
+# routing_mode: "valhalla", valhalla_reachable: true  ← setelah Valhalla selesai build
+curl https://<valhalla-domain>/status
+# 200 when graph loaded
+```
+
+UI production menampilkan banner **Mode simulasi** hanya jika `routing_mode=mock`.
+
+### 9.4 Routing nyata di Railway (Valhalla)
+
+Service **valhalla** (`services/valhalla/`) memakai image [gis-ops/docker-valhalla](https://github.com/gis-ops/docker-valhalla) dengan clip OSM Jabodetabek (bbox sama dengan `bodetabek_bbox` di API) agar build graph lebih cepat daripada full Java.
+
+| Langkah | Detail |
+|---------|--------|
+| **Volume** | Mount persistent volume ke `/custom_files` (tiles + OSM clip survive redeploy) |
+| **RAM** | Scale **≥ 4 GB** sebelum deploy pertama (graph build). Bisa turun setelah tiles siap |
+| **Healthcheck** | `GET /status` — **gagal** selama build pertama (10–30 menit). `healthcheckTimeout=3600` di `railway.toml` |
+| **API env** | `ROUTING_MODE=auto`, `VALHALLA_URL=http://${{valhalla.RAILWAY_PRIVATE_DOMAIN}}:8002` |
+
+Deploy pertama (per volume kosong):
+
+1. Download Java OSM (~150 MB) → clip Jabodetabek (~15–25 MB)
+2. `valhalla_build_tiles` — **10–30 menit** untuk bbox kecil (vs 30–60+ full Java)
+3. Serve di port 8002; redeploy berikutnya load `valhalla_tiles.tar` dari volume (cepat)
+
+Jika OOM atau timeout: naikkan RAM ke 8 GB, atau pre-upload `valhalla_tiles.tar` ke volume + `use_tiles_ignore_pbf=True`.
+
+### 9.5 Routing nyata — opsi per environment
+
+| Environment | Cara dapat isochrone OSM nyata |
+|-------------|--------------------------------|
+| **Lokal (cepat)** | `docker compose --profile routing up -d valhalla` → `.env`: `ROUTING_MODE=auto` → restart API |
+| **Production** | Service Railway **valhalla** (9.4) + `VALHALLA_URL` private di API |
+
+Langkah lokal (Option A — immediate):
+
+```powershell
+# Pastikan Docker Desktop jalan
+docker compose --profile routing up -d valhalla   # build pertama ±30–60 menit
+curl http://localhost:8002/status                  # harus 200
+# .env: ROUTING_MODE=auto  VALHALLA_URL=http://localhost:8002
+bun run dev:api
+curl http://localhost:8000/meta/city               # routing_mode: "valhalla"
+```

@@ -9,7 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 <!-- changelog:sync-begin -->
+### Added
 
+- **deploy** — Valhalla service on Railway (`services/valhalla/`) with Jabodetabek OSM clip for real isochrones in production
 <!-- changelog:sync-end -->
 
 ## [0.1.5] - 2026-06-19
