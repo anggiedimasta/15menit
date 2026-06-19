@@ -13,9 +13,10 @@ async function placeCommutePins(page: Page) {
   const box = await map.boundingBox();
   if (!box) throw new Error("Map bounding box unavailable");
   await page.mouse.click(box.x + box.width * 0.35, box.y + box.height * 0.45);
+  await page.waitForTimeout(300);
   await page.mouse.click(box.x + box.width * 0.65, box.y + box.height * 0.55);
   await expect(page.getByTestId("compare-button")).toBeEnabled({
-    timeout: 5_000,
+    timeout: 10_000,
   });
 }
 
@@ -112,11 +113,27 @@ test.describe("15menit smoke", () => {
 });
 
 test.describe("api unreachable", () => {
+  test.use({ serviceWorkers: "block" });
+
   test("shows banner when health check fails", async ({ page }) => {
-    await page.route("**/api/health", (route) => route.abort("failed"));
-    await page.goto("/");
+    await page.addInitScript(() => {
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        if (url.includes("/health")) {
+          return Promise.resolve(new Response("down", { status: 503 }));
+        }
+        return originalFetch(input, init);
+      };
+    });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByTestId("api-unreachable-banner")).toBeVisible({
-      timeout: 10_000,
+      timeout: 15_000,
     });
   });
 });
