@@ -1,0 +1,4 @@
+city: bandung
+bbox: [-7.1, 107.4, -6.8, 107.8]
+osm_extract: java-latest.osm.pbf
+gtfs_urls: []

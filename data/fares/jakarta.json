@@ -1,0 +1,8 @@
+{
+  "transjakarta_flat": 3500,
+  "krl": {
+    "Manggarai-Sudirman": 5000,
+    "Manggarai-Gambir": 4000
+  },
+  "mrt_per_segment": 5000
+}
