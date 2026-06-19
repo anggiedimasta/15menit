@@ -9,9 +9,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 <!-- changelog:sync-begin -->
+
+<!-- changelog:sync-end -->
+
+## [0.1.18] - 2026-06-19
+
+<!-- changelog:sync-begin -->
 ### Fixed
 
-- **web** — panel overlap with map controls; geocode dropdown dismiss on blur, outside click, and Escape
+- **web** — panel overlap and geocode dropdown dismiss ([6ca146c](https://github.com/anggiedimasta/15menit/commit/6ca146c))
+
 
 <!-- changelog:sync-end -->
 
