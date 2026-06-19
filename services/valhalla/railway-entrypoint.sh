@@ -10,7 +10,12 @@ runuser -u valhalla -- /valhalla/scripts/prepare-osm.sh
 
 export build_elevation="${build_elevation:-False}"
 export serve_tiles="${serve_tiles:-True}"
-export use_tiles_ignore_pbf="${use_tiles_ignore_pbf:-True}"
+# Rebuild from PBF until tile archive exists (avoids loading partial valhalla_tiles/).
+if [[ -f "${CUSTOM}/valhalla_tiles.tar" ]]; then
+  export use_tiles_ignore_pbf="${use_tiles_ignore_pbf:-True}"
+else
+  export use_tiles_ignore_pbf="False"
+fi
 export build_tar="${build_tar:-True}"
 export build_admins="${build_admins:-False}"
 export build_time_zones="${build_time_zones:-False}"

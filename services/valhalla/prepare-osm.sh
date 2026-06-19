@@ -19,9 +19,14 @@ BBOX="${OSM_CLIP_BBOX:-106.3,-6.75,107.2,-6.0}"
 TILE_TAR="${CUSTOM}/valhalla_tiles.tar"
 TILE_DIR="${CUSTOM}/valhalla_tiles"
 
-if [[ -f "${TILE_TAR}" ]] || [[ -n "$(ls -A "${TILE_DIR}" 2>/dev/null || true)" ]]; then
-  echo "INFO: Existing Valhalla tiles found — skipping OSM prepare."
+if [[ -f "${TILE_TAR}" ]]; then
+  echo "INFO: Existing Valhalla tile archive found — skipping OSM prepare."
   exit 0
+fi
+
+if [[ -d "${TILE_DIR}" ]] && [[ -n "$(ls -A "${TILE_DIR}" 2>/dev/null || true)" ]]; then
+  echo "WARN: Incomplete valhalla_tiles directory (no archive) — removing for rebuild."
+  rm -rf "${TILE_DIR}"
 fi
 
 if [[ -f "${CLIP}" ]]; then
