@@ -1,5 +1,5 @@
 import { MapPin } from "@phosphor-icons/react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
@@ -39,10 +39,12 @@ export function LocationSearchInput({
   "data-testid": testId,
 }: LocationSearchInputProps) {
   const inputId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(value);
   const debounced = useDebounce(query, 300);
   const [results, setResults] = useState<GeocodeResult[]>([]);
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const isGlass = variant === "glass";
 
   useEffect(() => {
@@ -50,13 +52,26 @@ export function LocationSearchInput({
   }, [value]);
 
   useEffect(() => {
-    if (debounced.length < 2) {
+    if (!focused) return;
+
+    if (debounced.trim().length < 2) {
       setResults([]);
+      setOpen(false);
       return;
     }
+
+    if (debounced.trim() === value.trim()) {
+      setResults([]);
+      setOpen(false);
+      return;
+    }
+
     const queryKey = debounced.trim().toLowerCase();
+    let cancelled = false;
+
     fetchGeocodeCache(queryKey)
       .then((cached) => {
+        if (cancelled) return null;
         if (cached?.length) {
           setResults(cached);
           setOpen(true);
@@ -65,16 +80,37 @@ export function LocationSearchInput({
         return searchGeocode(debounced);
       })
       .then((items) => {
-        if (items) {
-          setResults(items);
-          setOpen(items.length > 0);
-        }
+        if (cancelled || items == null) return;
+        setResults(items);
+        setOpen(items.length > 0);
       })
       .catch((err: Error) => toast.error(err.message));
-  }, [debounced]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debounced, focused, value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
+  const dismissSuggestions = () => {
+    setOpen(false);
+    setResults([]);
+  };
 
   return (
-    <div className="relative min-w-0 flex-1" data-testid={testId}>
+    <div ref={rootRef} className="relative min-w-0 flex-1" data-testid={testId}>
       <div className="flex items-center gap-2">
         <MapPin
           className={cn("size-4 shrink-0", PIN_COLORS[pinColor])}
@@ -87,11 +123,16 @@ export function LocationSearchInput({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            setFocused(true);
             setOpen(true);
           }}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => setFocused(true)}
           onBlur={() => {
+            setFocused(false);
             window.setTimeout(() => setOpen(false), 150);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") dismissSuggestions();
           }}
           aria-label={label}
           aria-autocomplete="list"
@@ -109,7 +150,7 @@ export function LocationSearchInput({
       {open && results.length > 0 && (
         <ul
           className={cn(
-            "absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-xl border shadow-lg backdrop-blur-xl",
+            "absolute top-full right-0 left-0 z-50 mt-1 max-h-48 w-full overflow-auto rounded-xl border shadow-lg backdrop-blur-xl",
             isGlass
               ? mapTheme === "dark"
                 ? "border-white/20 bg-zinc-900/95 text-zinc-50"
@@ -133,8 +174,8 @@ export function LocationSearchInput({
                 onClick={() => {
                   onSelect(item);
                   setQuery(item.display_name);
-                  setResults([]);
-                  setOpen(false);
+                  setFocused(false);
+                  dismissSuggestions();
                 }}
               >
                 {item.display_name}

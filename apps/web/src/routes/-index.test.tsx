@@ -150,6 +150,97 @@ describe("SearchBar debounce", () => {
     expect(searchGeocode).toHaveBeenCalled();
     vi.useRealTimers();
   });
+
+  it("dismisses suggestions on blur and selection", async () => {
+    vi.useFakeTimers();
+    const { fetchGeocodeCache } = await import("@/lib/supabase");
+    const { LocationSearchInput } = await import(
+      "@/components/geocode/LocationSearchInput"
+    );
+    const onSelect = vi.fn();
+
+    vi.mocked(fetchGeocodeCache).mockResolvedValue([
+      {
+        lat: -6.17,
+        lng: 106.82,
+        display_name: "Monas, Jakarta",
+      },
+    ]);
+
+    render(<LocationSearchInput label="Dari" onSelect={onSelect} />);
+    const input = screen.getByLabelText("Dari");
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "Monas" } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(screen.getByText("Monas, Jakarta")).toBeTruthy();
+
+    fireEvent.blur(input);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(150);
+    });
+    expect(screen.queryByText("Monas, Jakarta")).toBeNull();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "Monas " } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    fireEvent.click(screen.getByText("Monas, Jakarta"));
+    expect(onSelect).toHaveBeenCalled();
+    expect(screen.queryByText("Monas, Jakarta")).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it("does not reopen suggestions when value matches committed label", async () => {
+    vi.useFakeTimers();
+    const { fetchGeocodeCache } = await import("@/lib/supabase");
+    const { LocationSearchInput } = await import(
+      "@/components/geocode/LocationSearchInput"
+    );
+
+    vi.mocked(fetchGeocodeCache).mockResolvedValue([
+      {
+        lat: -6.24,
+        lng: 106.85,
+        display_name: "-6.2454, 106.8572, Jakarta, Indonesia",
+      },
+    ]);
+
+    const { rerender } = render(
+      <LocationSearchInput
+        label="Asal"
+        value="-6.2454, 106.8572, Jakarta, Indonesia"
+        onSelect={() => {}}
+      />,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(
+      screen.queryByText("-6.2454, 106.8572, Jakarta, Indonesia"),
+    ).toBeNull();
+
+    rerender(
+      <LocationSearchInput
+        label="Asal"
+        value="-6.2454, 106.8572, Jakarta, Indonesia"
+        onSelect={() => {}}
+      />,
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(
+      screen.queryByText("-6.2454, 106.8572, Jakarta, Indonesia"),
+    ).toBeNull();
+
+    vi.useRealTimers();
+  });
 });
 
 describe("ComparisonCards", () => {
@@ -288,6 +379,39 @@ describe("api unreachable banner", () => {
     checkApiHealth.mockResolvedValue(false);
     render(<App />);
     expect(await screen.findByTestId("api-unreachable-banner")).toBeTruthy();
+  });
+});
+
+describe("routing mock banner", () => {
+  beforeEach(() => {
+    checkApiHealth.mockResolvedValue(true);
+  });
+
+  afterEach(() => cleanup());
+
+  it("hides banner when valhalla is reachable", async () => {
+    fetchCityMeta.mockResolvedValueOnce({
+      city: "jakarta",
+      transit_available: true,
+      routing_mode: "mock",
+      valhalla_reachable: true,
+    });
+    render(<App />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByTestId("routing-mock-banner")).toBeNull();
+  });
+
+  it("shows banner when mock and valhalla unreachable", async () => {
+    fetchCityMeta.mockResolvedValueOnce({
+      city: "jakarta",
+      transit_available: true,
+      routing_mode: "mock",
+      valhalla_reachable: false,
+    });
+    render(<App />);
+    expect(await screen.findByTestId("routing-mock-banner")).toBeTruthy();
   });
 });
 

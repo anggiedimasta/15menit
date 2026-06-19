@@ -140,6 +140,7 @@ export function App() {
   );
   const [transitAvailable, setTransitAvailable] = useState(true);
   const [routingMode, setRoutingMode] = useState<string | null>(null);
+  const [valhallaReachable, setValhallaReachable] = useState(false);
   const [mapTheme, setMapTheme] = useState<MapTheme>("light");
   const [pinLabels, setPinLabels] = useState({ a: "", b: "" });
   const apiHealthy = useApiHealth();
@@ -172,10 +173,12 @@ export function App() {
       .then((meta) => {
         setTransitAvailable(meta.transit_available);
         setRoutingMode(meta.routing_mode);
+        setValhallaReachable(meta.valhalla_reachable);
       })
       .catch(() => {
         setTransitAvailable(true);
         setRoutingMode(null);
+        setValhallaReachable(false);
       });
   }, []);
 
@@ -284,7 +287,7 @@ export function App() {
 
         <div className="pointer-events-none fixed inset-0 z-10">
           <div
-            className="pointer-events-auto fixed top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] z-20 w-[min(100%-2rem,24rem)]"
+            className="pointer-events-auto fixed top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] z-20 w-[min(calc(100%-2rem-3.5rem),24rem)]"
             data-testid="floating-top-panel"
           >
             <GlassPanel mapTheme={mapTheme} className="p-3">
@@ -348,7 +351,7 @@ export function App() {
                 </div>
               )}
 
-              {routingMode === "mock" && apiHealthy && (
+              {routingMode === "mock" && !valhallaReachable && apiHealthy && (
                 <div
                   className={cn(
                     "mb-2 rounded-lg border px-2 py-1.5 text-xs",
@@ -425,7 +428,7 @@ export function App() {
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col">
             {compareData && mode === "commute" && (
-              <div className="pointer-events-auto px-4 pb-2">
+              <div className="pointer-events-auto pl-4 pr-14 pb-2">
                 <ComparisonCards
                   data={compareData}
                   variant="floating"
@@ -438,7 +441,7 @@ export function App() {
 
             {mode === "isochrone" && (
               <div
-                className="pointer-events-auto px-4 pb-2"
+                className="pointer-events-auto pl-4 pr-14 pb-2"
                 role="tabpanel"
                 aria-label="Isochrone"
               >
@@ -535,7 +538,7 @@ export function App() {
               </div>
             )}
 
-            <div className="pointer-events-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="pointer-events-auto pl-4 pr-14 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <GlassPanel
                 mapTheme={mapTheme}
                 className="mx-auto flex w-fit gap-1 p-1"
