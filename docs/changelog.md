@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.17] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — align listen port with Railway PORT env ([25d2576](https://github.com/anggiedimasta/15menit/commit/25d2576))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.16] - 2026-06-19
 
 <!-- changelog:sync-begin -->
