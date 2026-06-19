@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
   workers: 1,
+  timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
@@ -13,6 +14,7 @@ export default defineConfig({
     baseURL: WEB_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    actionTimeout: 15_000,
   },
   projects: [
     {

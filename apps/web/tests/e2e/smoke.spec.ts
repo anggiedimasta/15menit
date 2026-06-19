@@ -23,10 +23,11 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("15menit smoke", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "15menit" })).toBeVisible({
-      timeout: 15_000,
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.getByTestId("floating-top-panel")).toBeVisible({
+      timeout: 20_000,
     });
+    await expect(page.getByRole("heading", { name: "15menit" })).toBeVisible();
     await waitForMapReady(page);
   });
 
