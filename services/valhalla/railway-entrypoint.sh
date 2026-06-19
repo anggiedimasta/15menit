@@ -25,8 +25,16 @@ unset tile_urls
 
 # docker-valhalla defaults server_threads to nproc; Railway hosts expose many cores
 # and Valhalla opens tile files per worker → "Too many open files" at low ulimit.
-export server_threads="${server_threads:-2}"
+# Force 2 — do not honor external server_threads (Railway/nproc may override cap).
+export server_threads=2
 ulimit -n 65536 2>/dev/null || ulimit -n 4096 2>/dev/null || true
 
-# runuser drops custom env vars unless -p; pass server_threads explicitly so v0.1.13 cap applies.
-exec runuser -p -u valhalla -- env server_threads="${server_threads}" /valhalla/scripts/run.sh "$@"
+CONFIG="${CUSTOM}/valhalla.json"
+if [[ -f "${CONFIG}" ]] && command -v jq >/dev/null 2>&1; then
+  jq --argjson t 2 --arg listen "0.0.0.0:8002" \
+    '.mjolnir.concurrency = $t | (if .service then .service.listen = $listen else . end)' \
+    "${CONFIG}" > "${CONFIG}.railway.tmp" && mv "${CONFIG}.railway.tmp" "${CONFIG}"
+fi
+
+echo "INFO: Railway entrypoint forced server_threads=${server_threads} listen=0.0.0.0:8002"
+exec env server_threads="${server_threads}" /valhalla/scripts/run.sh "$@"

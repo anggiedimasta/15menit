@@ -12,6 +12,7 @@ RUN chmod +x /valhalla/scripts/prepare-osm.sh /valhalla/scripts/railway-entrypoi
 # Entrypoint runs as root to chown Railway volume, then drops to valhalla via runuser.
 WORKDIR /custom_files
 
+ENV server_threads=2
 EXPOSE 8002
 ENTRYPOINT ["/valhalla/scripts/railway-entrypoint.sh"]
 CMD ["build_tiles"]
