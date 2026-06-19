@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.11] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Fixed
+
+- **valhalla** — chown Railway volume before OSM download ([21bfea9](https://github.com/anggiedimasta/15menit/commit/21bfea9))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.10] - 2026-06-19
 
 <!-- changelog:sync-begin -->
