@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: fifteenmenit
+      POSTGRES_PASSWORD: fifteenmenit
+      POSTGRES_DB: fifteenmenit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fifteenmenit -d fifteenmenit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  valhalla:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    profiles: ["routing"]
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./data/valhalla:/custom_files
+    environment:
+      - tile_urls=https://download.geofabrik.de/asia/indonesia/java-latest.osm.pbf
+      - build_elevation=False
+      - serve_tiles=True
+
+volumes:
+  pgdata:
