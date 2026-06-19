@@ -31,10 +31,10 @@ ulimit -n 65536 2>/dev/null || ulimit -n 4096 2>/dev/null || true
 
 CONFIG="${CUSTOM}/valhalla.json"
 if [[ -f "${CONFIG}" ]] && command -v jq >/dev/null 2>&1; then
-  jq --argjson t 2 --arg listen "0.0.0.0:8002" \
-    '.mjolnir.concurrency = $t | (if .service then .service.listen = $listen else . end)' \
+  jq --argjson t 2 --arg listen "tcp://*:8002" \
+    '.mjolnir.concurrency = $t | .httpd.service.listen = $listen | del(.service)' \
     "${CONFIG}" > "${CONFIG}.railway.tmp" && mv "${CONFIG}.railway.tmp" "${CONFIG}"
 fi
 
-echo "INFO: Railway entrypoint forced server_threads=${server_threads} listen=0.0.0.0:8002"
+echo "INFO: Railway entrypoint forced server_threads=${server_threads} listen=tcp://*:8002"
 exec env server_threads="${server_threads}" /valhalla/scripts/run.sh "$@"
