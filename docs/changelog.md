@@ -12,6 +12,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 <!-- changelog:sync-end -->
 
+## [0.1.2] - 2026-06-19
+
+<!-- changelog:sync-begin -->
+### Added
+
+- **web** — glass panel contrast and search UX ([8f87cb3](https://github.com/anggiedimasta/15menit/commit/8f87cb3))
+
+### Changed
+
+- **web** — stabilize e2e playwright timeouts ([bc3b9f5](https://github.com/anggiedimasta/15menit/commit/bc3b9f5))
+- **backlog** — sync integration and routing status ([19d1ba3](https://github.com/anggiedimasta/15menit/commit/19d1ba3))
+- **docker** — add docker-up script and docs ([4b8fb29](https://github.com/anggiedimasta/15menit/commit/4b8fb29))
+
+### Fixed
+
+- **web** — share url sync and devtools SSR ([5bf5d73](https://github.com/anggiedimasta/15menit/commit/5bf5d73))
+- **api** — transit gtfs path and routing config ([314bfd7](https://github.com/anggiedimasta/15menit/commit/314bfd7))
+- **api** — postgis alembic and test isolation ([8383a5f](https://github.com/anggiedimasta/15menit/commit/8383a5f))
+
+
+<!-- changelog:sync-end -->
+
 ## [0.1.1] - 2026-06-19
 
 <!-- changelog:sync-begin -->
