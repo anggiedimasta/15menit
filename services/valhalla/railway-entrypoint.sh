@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-/valhalla/scripts/prepare-osm.sh
+CUSTOM="${CUSTOM_FILES:-/custom_files}"
+mkdir -p "${CUSTOM}"
+# Railway volumes mount as root; valhalla user needs write access for OSM download + tiles.
+chown -R valhalla:valhalla "${CUSTOM}"
+
+runuser -u valhalla -- /valhalla/scripts/prepare-osm.sh
 
 export build_elevation="${build_elevation:-False}"
 export serve_tiles="${serve_tiles:-True}"
@@ -13,4 +18,4 @@ export build_time_zones="${build_time_zones:-False}"
 # Prefer clipped local PBF in /custom_files over remote tile_urls.
 unset tile_urls
 
-exec /valhalla/scripts/run.sh "$@"
+exec runuser -u valhalla -- /valhalla/scripts/run.sh "$@"
