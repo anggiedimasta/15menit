@@ -13,6 +13,7 @@ RUN chmod +x /valhalla/scripts/prepare-osm.sh /valhalla/scripts/railway-entrypoi
 WORKDIR /custom_files
 
 ENV server_threads=2
+ENV PORT=8002
 EXPOSE 8002
 ENTRYPOINT ["/valhalla/scripts/railway-entrypoint.sh"]
 CMD ["build_tiles"]

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 CUSTOM="${CUSTOM_FILES:-/custom_files}"
-mkdir -p "${CUSTOM}"
+mkdir -p "${CUSTOM}" "${CUSTOM}/transit_tiles"
 # Railway volumes mount as root; valhalla user needs write access for OSM download + tiles.
 chown -R valhalla:valhalla "${CUSTOM}"
 
@@ -29,12 +29,16 @@ unset tile_urls
 export server_threads=2
 ulimit -n 65536 2>/dev/null || ulimit -n 4096 2>/dev/null || true
 
+# Railway healthchecks probe $PORT; default 8002 matches EXPOSE and API VALHALLA_URL.
+LISTEN_PORT="${PORT:-8002}"
+export PORT="${LISTEN_PORT}"
+
 CONFIG="${CUSTOM}/valhalla.json"
 if [[ -f "${CONFIG}" ]] && command -v jq >/dev/null 2>&1; then
-  jq --argjson t 2 --arg listen "tcp://*:8002" \
+  jq --argjson t 2 --arg listen "tcp://*:${LISTEN_PORT}" \
     '.mjolnir.concurrency = $t | .httpd.service.listen = $listen | del(.service)' \
     "${CONFIG}" > "${CONFIG}.railway.tmp" && mv "${CONFIG}.railway.tmp" "${CONFIG}"
 fi
 
-echo "INFO: Railway entrypoint forced server_threads=${server_threads} listen=tcp://*:8002"
+echo "INFO: Railway entrypoint forced server_threads=${server_threads} listen=tcp://*:${LISTEN_PORT} (PORT=${PORT})"
 exec env server_threads="${server_threads}" /valhalla/scripts/run.sh "$@"
